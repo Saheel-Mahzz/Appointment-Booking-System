@@ -1,14 +1,16 @@
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table";
 
-
+export interface Column<T> {
+  header: string;
+  accessorKey: keyof T | string;
+  cell?: (row: T, index?: number) => React.ReactNode;
+}
 interface IList<T> {
   columns: Column<T>[];
   rows: T[];
   startIndex?: number;
   cell?: (row: T, index?: number) => React.ReactNode;
 }
-
-
-
 function getNestedValue<T>(
   obj: T,
   path: string,
