@@ -1,10 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 
-export default function Home() {
+import AllServices from "@/modules/allServices";
+
+export default async function Home() {
   return (
-<Card>
-I am card content
-</Card>
+<AllServices/>
   );
 }
