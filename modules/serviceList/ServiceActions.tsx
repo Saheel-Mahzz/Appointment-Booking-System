@@ -5,52 +5,123 @@ import { Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { updateService, deleteService } from "./api/serviceActions"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { deleteService, updateService } from "./api/serviceActions"
 import { Service } from "./types/sevices.types"
 
 export default function ServiceActions({ service }: { service: Service }) {
-  const [editing, setEditing] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [form, setForm] = useState(service)
 
-  async function handleUpdate() {
+  async function handleUpdate(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     await updateService(service.id, {
       name: form.name,
       description: form.description,
       duration: form.duration,
       price: form.price,
     })
-    setEditing(false)
+    setEditOpen(false)
   }
 
   async function handleDelete() {
-    if (window.confirm(`Delete ${service.name}?`)) {
-      await deleteService(service.id)
-    }
-  }
-
-  if (editing) {
-    return (
-      <div className="flex min-w-64 flex-col gap-2">
-        <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
-        <Textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
-        <Input value={form.duration} onChange={(event) => setForm({ ...form, duration: event.target.value })} />
-        <Input type="number" value={form.price} onChange={(event) => setForm({ ...form, price: Number(event.target.value) })} />
-        <div className="flex gap-2">
-          <Button size="sm" onClick={handleUpdate}>Save</Button>
-          <Button size="sm" variant="outline" onClick={() => setEditing(false)}>Cancel</Button>
-        </div>
-      </div>
-    )
+    await deleteService(service.id)
+    setDeleteOpen(false)
   }
 
   return (
-    <div className="flex gap-2">
-      <Button size="icon-sm" variant="ghost" aria-label={`Edit ${service.name}`} onClick={() => setEditing(true)}>
-        <Pencil />
-      </Button>
-      <Button size="icon-sm" variant="ghost" aria-label={`Delete ${service.name}`} onClick={handleDelete}>
-        <Trash2 />
-      </Button>
-    </div>
+    <>
+      <div className="flex gap-2">
+        <Button
+          size="icon-sm"
+          variant="ghost"
+          aria-label={`Edit ${service.name}`}
+          onClick={() => setEditOpen(true)}
+        >
+          <Pencil />
+        </Button>
+        <Button
+          size="icon-sm"
+          variant="ghost"
+          aria-label={`Delete ${service.name}`}
+          onClick={() => setDeleteOpen(true)}
+        >
+          <Trash2 />
+        </Button>
+      </div>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit service</DialogTitle>
+            <DialogDescription>
+              Update the service details below.
+            </DialogDescription>
+          </DialogHeader>
+          <form className="grid gap-4" onSubmit={handleUpdate}>
+            <label className="text-sm font-medium">
+              Name
+              <Input
+                value={form.name}
+                onChange={(event) => setForm({ ...form, name: event.target.value })}
+              />
+            </label>
+            <label className="text-sm font-medium">
+              Description
+              <Textarea
+                value={form.description}
+                onChange={(event) =>
+                  setForm({ ...form, description: event.target.value })
+                }
+              />
+            </label>
+            <label className="text-sm font-medium">
+              Duration
+              <Input
+                value={form.duration}
+                onChange={(event) => setForm({ ...form, duration: event.target.value })}
+              />
+            </label>
+            <label className="text-sm font-medium">
+              Price
+              <Input
+                type="number"
+                value={form.price}
+                onChange={(event) =>
+                  setForm({ ...form, price: Number(event.target.value) })
+                }
+              />
+            </label>
+            <DialogFooter showCloseButton>
+              <Button type="submit">Save changes</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete service?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {service.name}?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter showCloseButton>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
