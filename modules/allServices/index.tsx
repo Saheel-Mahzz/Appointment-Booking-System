@@ -1,7 +1,7 @@
 import React from 'react'
 import { getServices } from '../serviceList/api/getServices';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import BookingDialog from './bookingDialog';
 
 export default async function AllServices() {
      const services = await getServices();
@@ -20,6 +20,9 @@ export default async function AllServices() {
             Choose a service and book an appointment at a time that works for
             you.
           </p>
+          <div className="mt-6">
+            <BookingDialog />
+          </div>
         </div>
 
         {serviceList.length > 0 ? (
@@ -47,9 +50,6 @@ export default async function AllServices() {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button className="w-full">Book appointment</Button>
-                </CardFooter>
               </Card>
             ))}
           </div>
