@@ -1,5 +1,6 @@
-import { cax } from "@/lib/axios";
 import { AxiosError } from "axios";
+import { bookingSchema } from "../schemas/bookingSchema";
+import { createAppointment } from "../../appointments/api/createAppointment";
 
 interface BookingActionResponse {
   data?: string;
@@ -11,17 +12,24 @@ export async function creatBookingAction(
   prevState: BookingActionResponse,
   formData: FormData,
 ) {
-  const rawData = {
-    customer_name:formData?.get("customer_name"),
-    customer_email: formData?.get("customer_email"),
-    customer_phone: formData?.get("customer_phone"),
-    appointment_date: formData?.get("appointment_date"),
-    appointment_time: formData?.get("appointment_time"),
-    service: JSON.parse(formData?.get("service") as string),
-  };
+  const parsedData = bookingSchema.safeParse({
+    customer_name: formData.get("customer_name"),
+    customer_phone: formData.get("customer_phone"),
+    appointment_date: formData.get("appointment_date"),
+    appointment_time: formData.get("appointment_time"),
+    service: formData.get("service"),
+    notes: formData.get("notes") || undefined,
+  });
+
+  if (!parsedData.success) {
+    return {
+      success: false,
+      message: parsedData.error.issues[0]?.message ?? "Please check the form.",
+    };
+  }
 
   try {
-    const res = await cax.post("/services/", rawData);
+    const res = await createAppointment(parsedData.data);
     return {
       data: res?.data,
       success: true,

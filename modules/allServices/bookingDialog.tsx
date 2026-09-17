@@ -2,6 +2,16 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -11,18 +21,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { bookingSchema, type BookingFormValues } from "./schemas/bookingSchema"
+import { Service } from "../serviceList/types/sevices.types"
+import { createAppointment } from "../appointments/api/createAppointment"
 
-const serviceOptions = [
-  "General consultation",
-  "Dental checkup",
-  "Physical therapy",
-]
-
-const fieldClassName =
-  "mt-1 h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-
-export default function BookingDialog() {
+export default function BookingDialog({ services }: { services: Service[] }) {
   const [open, setOpen] = useState<boolean>(false)
+  const [errors, setErrors] = useState<Partial<Record<keyof BookingFormValues, string>>>({})
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const result = bookingSchema.safeParse(
+      Object.fromEntries(new FormData(event.currentTarget).entries()),
+    )
+    if (!result.success) {
+      setErrors(Object.fromEntries(result.error.issues.map((issue) => [issue.path[0], issue.message])))
+      return
+    }
+    setErrors({})
+    await createAppointment(result.data)
+    setOpen(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -37,48 +56,53 @@ export default function BookingDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="text-sm font-medium">
+        <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
+          <Label>
             Customer name
-            <input className={fieldClassName} type="text" />
-          </label>
+            <Input name="customer_name" type="text" err={errors.customer_name} />
+          </Label>
 
-          <label className="text-sm font-medium">
+          <Label>
             Customer phone
-            <input className={fieldClassName} type="tel" />
-          </label>
+            <Input name="customer_phone" type="tel" err={errors.customer_phone} />
+          </Label>
 
-          <label className="text-sm font-medium">
+          <Label>
             Customer time
-            <input className={fieldClassName} type="time" />
-          </label>
+            <Input name="appointment_time" type="time" err={errors.appointment_time} />
+          </Label>
 
-          <label className="text-sm font-medium">
+          <Label>
             Appointment date
-            <input className={fieldClassName} type="date" />
-          </label>
+            <Input name="appointment_date" type="date" err={errors.appointment_date} />
+          </Label>
 
-          <label className="text-sm font-medium sm:col-span-2">
+          <Label className="sm:col-span-2">
             Select service
-            <select className={fieldClassName} defaultValue="">
-              <option value="" disabled>
-                Choose a service
-              </option>
-              {serviceOptions.map((service) => (
-                <option key={service} value={service}>
-                  {service}
-                </option>
+            <Select name="service">
+              <SelectTrigger className="w-full" aria-invalid={!!errors.service}>
+                <SelectValue placeholder="Choose a service" />
+              </SelectTrigger>
+              <SelectContent>
+              {services.map((service) => (
+                <SelectItem key={service.id} value={String(service.id)}>
+                  {service.name}
+                </SelectItem>
               ))}
-            </select>
-          </label>
+              </SelectContent>
+            </Select>
+            {errors.service && <span className="text-xs text-destructive">{errors.service}</span>}
+          </Label>
 
-          <label className="text-sm font-medium sm:col-span-2">
+          <Label className="sm:col-span-2">
             Notes <span className="font-normal text-muted-foreground">(optional)</span>
-            <textarea className="mt-1 min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring" />
-          </label>
-        </div>
+            <Textarea name="notes" err={errors.notes} />
+          </Label>
 
-        <DialogFooter showCloseButton />
+          <DialogFooter className="sm:col-span-2" showCloseButton>
+            <Button type="submit">Book appointment</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

@@ -1,6 +1,7 @@
 export interface Service{
+    id: number | string
     name:string,
-    description:number,
+    description:string,
     duration:string
     price:number
 }

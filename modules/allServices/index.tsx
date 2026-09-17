@@ -21,7 +21,7 @@ export default async function AllServices() {
             you.
           </p>
           <div className="mt-6">
-            <BookingDialog />
+            <BookingDialog services={serviceList} />
           </div>
         </div>
 

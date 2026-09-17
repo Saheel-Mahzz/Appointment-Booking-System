@@ -2,13 +2,13 @@ import { Column, List } from '@/components/ui/list'
 import React from 'react'
 import { getServices } from './api/getServices'
 import { Service } from './types/sevices.types'
+import ServiceActions from './ServiceActions'
 export default async function ServiceList() {
  
     const services =await getServices()
     
   const allServices = services?.data || [];
 
-  console.log('all servcies',allServices)
    const columns: Column<Service>[] = [
     {
       header: "S.N",
@@ -33,13 +33,11 @@ export default async function ServiceList() {
       header: "Duration",
       accessorKey: "duration",
     },
-    // {
-    //   header: "Actions",
-    //   accessorKey: "actions",
-    //   cell: (row) => {
-    //     return <BusModel row={row} />;
-    //   },
-    // },
+    {
+      header: "Actions",
+      accessorKey: "actions",
+      cell: (row) => <ServiceActions service={row} />,
+    },
   ];
 //   const totalCount = response?.data?.count || 0;
 //   const allBooking = response?.data?.results || [];
